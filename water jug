@@ -1,0 +1,66 @@
+from collections import deque
+
+class WaterJugProblem:
+    def __init__(self, jug1_capacity, jug2_capacity, target_amount):
+        self.jug1_capacity = jug1_capacity
+        self.jug2_capacity = jug2_capacity
+        self.target_amount = target_amount
+        self.visited_states = set()
+        self.actions = []
+        self.solve()
+
+    def solve(self):
+        queue = deque([(0, 0)])
+        self.visited_states.add((0, 0))
+
+        while queue:
+            jug1_amount, jug2_amount = queue.popleft()
+
+            if jug1_amount == self.target_amount or jug2_amount == self.target_amount:
+                self.trace_back(jug1_amount, jug2_amount)
+                self.actions.reverse()
+                return
+            if (self.jug1_capacity, jug2_amount) not in self.visited_states:
+                queue.append((self.jug1_capacity, jug2_amount))
+                self.visited_states.add((self.jug1_capacity, jug2_amount))
+                self.actions.append(f"Fill jug 1 ({self.jug1_capacity}, {jug2_amount})")
+
+            # Action 2: Fill jug 2
+            if (jug1_amount, self.jug2_capacity) not in self.visited_states:
+                queue.append((jug1_amount, self.jug2_capacity))
+                self.visited_states.add((jug1_amount, self.jug2_capacity))
+                self.actions.append(f"Fill jug 2 ({jug1_amount}, {self.jug2_capacity})")
+            pour_amount = min(jug1_amount, self.jug2_capacity - jug2_amount)
+            if (jug1_amount - pour_amount, jug2_amount + pour_amount) not in self.visited_states:
+                queue.append((jug1_amount - pour_amount, jug2_amount + pour_amount))
+                self.visited_states.add((jug1_amount - pour_amount, jug2_amount + pour_amount))
+                self.actions.append(f"Pour jug 1 to jug 2 ({jug1_amount - pour_amount}, {jug2_amount + pour_amount})")
+            pour_amount = min(jug2_amount, self.jug1_capacity - jug1_amount)
+            if (jug1_amount + pour_amount, jug2_amount - pour_amount) not in self.visited_states:
+                queue.append((jug1_amount + pour_amount, jug2_amount - pour_amount))
+                self.visited_states.add((jug1_amount + pour_amount, jug2_amount - pour_amount))
+                self.actions.append(f"Pour jug 2 to jug 1 ({jug1_amount + pour_amount}, {jug2_amount - pour_amount})")
+
+    def trace_back(self, jug1_amount, jug2_amount):
+        while (jug1_amount, jug2_amount) != (0, 0):
+            # Action 1: Pour jug 1 to jug 2
+            pour_amount = min(jug1_amount, self.jug2_capacity - jug2_amount)
+            if (jug1_amount - pour_amount, jug2_amount + pour_amount) in self.visited_states:
+                self.actions.append(f"Pour jug 1 to jug 2 ({jug1_amount - pour_amount}, {jug2_amount + pour_amount})")
+                jug1_amount, jug2_amount = jug1_amount - pour_amount, jug2_amount + pour_amount
+                continue
+            pour_amount = min(jug2_amount, self.jug1_capacity - jug1_amount)
+            if (jug1_amount + pour_amount, jug2_amount - pour_amount) in self.visited_states:
+                self.actions.append(f"Pour jug 2 to jug 1 ({jug1_amount + pour_amount}, {jug2_amount - pour_amount})")
+                jug1_amount, jug2_amount = jug1_amount + pour_amount, jug2_amount - pour_amount
+                continue
+
+    def print_actions(self):
+        for action in self.actions:
+            print(action)
+jug1_capacity = int(input("Enter the capacity of jug 1: "))
+jug2_capacity = int(input("Enter the capacity of jug 2: "))
+target_amount = int(input("Enter the target amount of water: "))
+
+water_jug_problem = WaterJugProblem(jug1_capacity, jug2_capacity, target_amount)
+water_jug_problem.print_actions()
